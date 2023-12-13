@@ -13,7 +13,7 @@ if(!config.get('VARjwtPrivateKey')) {
 
 const mongoose=require('mongoose');
     //connection
-mongoose.connect('mongodb://127.0.0.1:27017/goShop')
+mongoose.connect('mongodb+srv://latifaouali3003:T8B78f6ygJQg0JwD@mymongodb.82dcac4.mongodb.net/mymongodb?retryWrites=true&w=majority/goShop')
         .then(()=>{console.log('contected ...')})
         .catch(err=>{console.error('err.message')})
 
