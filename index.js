@@ -5,7 +5,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
 app.use(cors());
-
+app.use(express.static(path.join(__dirname, 'public')));
 if (!config.get("VARjwtPrivateKey")) {
   console.error("FATAL ERROR: VARjwtPrivateKey is not defined");
   process.exit(1);
