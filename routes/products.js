@@ -104,10 +104,15 @@ router.post("/", auth, upload.single("picture"), async (req, res) => {
 
     let user = await User.findById(req.body.sellerID);
     if (!user) return res.status(404).json({ error: "user not found" });
+    cloudinary.uploader.upload_stream({ resource_type: 'auto' }, (error, result) => {
+      if (error) {
+        return res.status(500).json({ message: 'Error uploading file to Cloudinary' });
+      }
+    const imageUrl = result.secure_url;
     const product = new Product({
       name: req.body.name,
       sellerID: req.body.sellerID,
-      picture: req.file.filename,
+      picture: imageUrl,
       price: req.body.price,
       description: req.body.description,
       category: req.body.category,
