@@ -12,7 +12,7 @@ router.use(express.json());
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "https://github.com/Latifaouali/goShop_vuejs/tree/master/public/user/");
+    cb(null, "https://goshopouali.netlify.app/public/user");
   },
   filename: (req, file, cb) => {
     const originalFileName = file.originalname;
