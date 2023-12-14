@@ -6,21 +6,15 @@ const multer = require("multer");
 const bcrypt=require('bcrypt');
 const jwt=require('jsonwebtoken');
 const {User,validateJoi} =require('../models/user');
-const path =require('path');
 const router=express.Router();
 router.use(express.json());
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "./public/");
-  },
-  filename: (req, file, cb) => {
-    const originalFileName = file.originalname;
-    const uniqueFileName = Date.now() + path.extname(originalFileName);
-    cb(null, uniqueFileName);
-  },
+import {v2 as cloudinary} from 'cloudinary';
+cloudinary.config({ 
+  cloud_name: 'drw21nboe', 
+  api_key: '884996169136445', 
+  api_secret: 'lJ1wspCMAQaTO4V50CKrRYkh2ZI' 
 });
-
+const storage = multer.memoryStorage()
 const upload = multer({ storage: storage });
 
 function validateJoiUpdate(user){

@@ -1,25 +1,32 @@
 const auth = require("../middleware/auth");
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
 const router = express.Router();
 const { Product, validateJoi } = require("../models/products");
 const { User } = require("../models/user");
 const { Order } = require("../models/orders");
 const {Review} =require('../models/review');
 router.use(express.json());
-
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "./public/");
-  },
-  filename: (req, file, cb) => {
-    const originalFileName = file.originalname;
-    const uniqueFileName = Date.now() + path.extname(originalFileName);
-    cb(null, uniqueFileName);
-  },
+import {v2 as cloudinary} from 'cloudinary';
+          
+cloudinary.config({ 
+  cloud_name: 'drw21nboe', 
+  api_key: '884996169136445', 
+  api_secret: 'lJ1wspCMAQaTO4V50CKrRYkh2ZI' 
 });
+
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, "./public/");
+//   },
+//   filename: (req, file, cb) => {
+//     const originalFileName = file.originalname;
+//     const uniqueFileName = Date.now() + path.extname(originalFileName);
+//     cb(null, uniqueFileName);
+//   },
+// });
+
+const storage = multer.memoryStorage()
 
 const upload = multer({ storage: storage });
 router.get("/", async (req, res) => {
