@@ -12,7 +12,7 @@ router.use(express.json());
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "https://goshopouali.netlify.app/public/user");
+    cb(null, "./public/user");
   },
   filename: (req, file, cb) => {
     const originalFileName = file.originalname;
