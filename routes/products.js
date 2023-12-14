@@ -7,7 +7,7 @@ const { User } = require("../models/user");
 const { Order } = require("../models/orders");
 const {Review} =require('../models/review');
 router.use(express.json());
-import {v2 as cloudinary} from 'cloudinary';
+const cloudinary = require('cloudinary').v2;
           
 cloudinary.config({ 
   cloud_name: 'drw21nboe', 
