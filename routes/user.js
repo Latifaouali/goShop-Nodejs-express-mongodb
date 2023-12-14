@@ -8,7 +8,7 @@ const jwt=require('jsonwebtoken');
 const {User,validateJoi} =require('../models/user');
 const router=express.Router();
 router.use(express.json());
-import {v2 as cloudinary} from 'cloudinary';
+const cloudinary = require('cloudinary').v2;
 cloudinary.config({ 
   cloud_name: 'drw21nboe', 
   api_key: '884996169136445', 
