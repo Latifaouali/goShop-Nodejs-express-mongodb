@@ -12,7 +12,7 @@ router.use(express.json());
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "../front-end/public/user/");
+    cb(null, "https://github.com/Latifaouali/goShop_vuejs/tree/master/public/user/");
   },
   filename: (req, file, cb) => {
     const originalFileName = file.originalname;
