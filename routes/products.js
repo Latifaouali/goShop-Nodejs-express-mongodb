@@ -141,7 +141,7 @@ router.post("/", auth, upload.single("picture"), async (req, res) => {
   }
 });
 
-router.put("/:id", upload.single("newValue"), async (req, res) => {
+router.put("/product/:id", upload.single("newValue"), async (req, res) => {
   try {
     const productId = req.params.id;
     const labelToUpdate = req.body.labelToUpdate;
@@ -166,6 +166,37 @@ router.put("/:id", upload.single("newValue"), async (req, res) => {
 
     return res.json(product);
   } catch (error) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.put("/:id", upload.single("newValue"), async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const labelToUpdate = req.body.labelToUpdate;
+
+    let newValue = "";
+    if (labelToUpdate === "picture" && req.file) {
+
+      const result = await cloudinary.uploader.upload(req.file.path, { resource_type: 'auto' });
+
+      newValue = result.secure_url;
+    } else {
+      newValue = req.body.newValue;
+    }
+
+    const updateQuery = { [labelToUpdate]: newValue };
+    const product = await Product.findByIdAndUpdate(productId, updateQuery, {
+      new: true,
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    return res.json(product);
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
