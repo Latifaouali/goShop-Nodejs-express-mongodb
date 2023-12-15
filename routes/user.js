@@ -59,7 +59,7 @@ router.post('/', async (req, res) => {
       res.status(500).send('Internal Server Error'); }
 });
 
-router.put('/:userID',auth, upload.single("picture"),async (req,res)=>{
+router.put('/user/:userID',auth, upload.single("picture"),async (req,res)=>{
   try{
   const {error}=validateJoiUpdate(req.body);
   if(error) return res.status(400).json({error:error.details[0].message})
@@ -81,5 +81,33 @@ router.put('/:userID',auth, upload.single("picture"),async (req,res)=>{
 })
  
   
+router.put('/:userID', auth, upload.single("picture"), async (req, res) => {
+  try {
+    const { error } = validateJoiUpdate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
+    const user = await User.findById(req.params.userID);
+    if (!user) return res.status(404).json({ error: 'No user found' });
+
+    if (req.body.userName) user.userName = req.body.userName;
+    if (req.file) {
+      cloudinary.uploader.upload_stream({ resource_type: 'auto' }, async(error, result) => {
+        if (error) {
+          return res.status(500).json({ message: 'Error uploading file to Cloudinary' });
+        }
+        user.picture = result.secure_url;
+        await user.save();
+        res.send(user);
+      }).end(req.file.buffer);
+    } else {
+      await user.save();
+      res.send(user);
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 module.exports=router;
