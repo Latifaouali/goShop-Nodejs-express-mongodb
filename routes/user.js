@@ -90,6 +90,8 @@ router.put('/:userID', auth, upload.single("picture"), async (req, res) => {
     if (!user) return res.status(404).json({ error: 'No user found' });
 
     if (req.body.userName) user.userName = req.body.userName;
+    if (req.body.address) user.address = req.body.address;
+    if (req.body.phone) user.phone = req.body.phone;
     if (req.file) {
       cloudinary.uploader.upload_stream({ resource_type: 'auto' }, async(error, result) => {
         if (error) {
