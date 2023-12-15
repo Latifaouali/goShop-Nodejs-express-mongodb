@@ -5,14 +5,14 @@ const router = express.Router();
 const { Product, validateJoi } = require("../models/products");
 const { User } = require("../models/user");
 const { Order } = require("../models/orders");
-const {Review} =require('../models/review');
+const { Review } = require("../models/review");
 router.use(express.json());
-const cloudinary = require('cloudinary').v2;
-          
-cloudinary.config({ 
-  cloud_name: 'drw21nboe', 
-  api_key: '884996169136445', 
-  api_secret: 'lJ1wspCMAQaTO4V50CKrRYkh2ZI' 
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: "drw21nboe",
+  api_key: "884996169136445",
+  api_secret: "lJ1wspCMAQaTO4V50CKrRYkh2ZI",
 });
 
 // const storage = multer.diskStorage({
@@ -26,7 +26,7 @@ cloudinary.config({
 //   },
 // });
 
-const storage = multer.memoryStorage()
+const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 router.get("/", async (req, res) => {
@@ -34,8 +34,8 @@ router.get("/", async (req, res) => {
   res.send(products);
 });
 
-router.get('/popularProducts',async(req,res)=>{
-  const highestRatedProducts =await Review.aggregate([
+router.get("/popularProducts", async (req, res) => {
+  const highestRatedProducts = await Review.aggregate([
     {
       $group: {
         _id: "$productID",
@@ -46,38 +46,40 @@ router.get('/popularProducts',async(req,res)=>{
       $sort: { averageRating: -1 },
     },
     {
-      $limit: 10, 
-    }
+      $limit: 10,
+    },
   ]);
 
-  const popularProduct=await Product.populate(highestRatedProducts, { path: "_id" });
+  const popularProduct = await Product.populate(highestRatedProducts, {
+    path: "_id",
+  });
   res.json(popularProduct);
-})
+});
 
-router.get('/sales-summary', async (req, res) => {
+router.get("/sales-summary", async (req, res) => {
   try {
     const pipeline = [
       {
         $match: {
-          paymentStatus: 'paid', 
+          paymentStatus: "paid",
         },
       },
       {
         $lookup: {
-          from: 'products', 
-          localField: 'productID',
-          foreignField: '_id',
-          as: 'product',
+          from: "products",
+          localField: "productID",
+          foreignField: "_id",
+          as: "product",
         },
       },
       {
-        $unwind: '$product',
+        $unwind: "$product",
       },
       {
         $group: {
           _id: null,
-          totalSales: { $sum: '$quantity' },
-          totalMoney: { $sum: { $multiply: ['$quantity', '$product.price'] } },
+          totalSales: { $sum: "$quantity" },
+          totalMoney: { $sum: { $multiply: ["$quantity", "$product.price"] } },
         },
       },
     ];
@@ -87,13 +89,13 @@ router.get('/sales-summary', async (req, res) => {
     res.json({ totalSales, totalMoney });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 router.get("/:id", async (req, res) => {
   const product = await Product.findById(req.params.id);
-  if(!product) return res.status(404).send({error:'no product found'});
+  if (!product) return res.status(404).send({ error: "no product found" });
   res.json(product);
 });
 
@@ -104,22 +106,33 @@ router.post("/", auth, upload.single("picture"), async (req, res) => {
 
     let user = await User.findById(req.body.sellerID);
     if (!user) return res.status(404).json({ error: "user not found" });
-    cloudinary.uploader.upload_stream({ resource_type: 'auto' }, (error, result) => {
-      if (error) {
-        return res.status(500).json({ message: 'Error uploading file to Cloudinary' });
-      }
-    const imageUrl = result.secure_url;
-    const product = new Product({
-      name: req.body.name,
-      sellerID: req.body.sellerID,
-      picture: imageUrl,
-      price: req.body.price,
-      description: req.body.description,
-      category: req.body.category,
-      salesCount:req.body.salesCount
-    });
+    cloudinary.uploader
+      .upload_stream({ resource_type: "auto" }, async (error, result) => {
+        if (error) {
+          return res
+            .status(500)
+            .json({ message: "Error uploading file to Cloudinary" });
+        }
 
-    await product.save();
+        // Access the file URL in the result variable and use it as needed
+        const imageUrl = result.secure_url;
+
+        const product = new Product({
+          name: req.body.name,
+          sellerID: req.body.sellerID,
+          picture: imageUrl,
+          price: req.body.price,
+          description: req.body.description,
+          category: req.body.category,
+          salesCount: req.body.salesCount,
+        });
+
+        // Save the product to your database
+        await product.save();
+
+        res.status(200).json("Product is added successfully");
+      })
+      .end(req.file.buffer);
 
     res.status(200).json("product is added successfuly");
   } catch (error) {
@@ -128,48 +141,44 @@ router.post("/", auth, upload.single("picture"), async (req, res) => {
   }
 });
 
-router.put('/:id', upload.single('newValue') ,async (req, res) => {
+router.put("/:id", upload.single("newValue"), async (req, res) => {
   try {
-
     const productId = req.params.id;
     const labelToUpdate = req.body.labelToUpdate;
-    let newValue='';
+    let newValue = "";
 
     const updateQuery = {};
-    if (labelToUpdate === 'picture') {
-      newValue=req.file.filename
+    if (labelToUpdate === "picture") {
+      newValue = req.file.filename;
     } else {
-       newValue = req.body.newValue;
+      newValue = req.body.newValue;
     }
 
     updateQuery[labelToUpdate] = newValue;
 
-    const product = await Product.findByIdAndUpdate(
-      productId,
-      updateQuery,
-      { new: true }
-    );
+    const product = await Product.findByIdAndUpdate(productId, updateQuery, {
+      new: true,
+    });
 
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     return res.json(product);
   } catch (error) {
-    return res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
-router.delete('/:productID',auth,async(req,res)=>{
-  try{
-  const product=await Product.findByIdAndRemove(req.params.productID);
-  if(!product) return res.status(400).json({error:'no product found'});
-  res.json({message:'product deleted successfully'});
-  }
-  catch(error){
-    res.status(500).json({error:'Internal server error'});
+router.delete("/:productID", auth, async (req, res) => {
+  try {
+    const product = await Product.findByIdAndRemove(req.params.productID);
+    if (!product) return res.status(400).json({ error: "no product found" });
+    res.json({ message: "product deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
     console.error(error);
   }
-})
+});
 
 module.exports = router;
